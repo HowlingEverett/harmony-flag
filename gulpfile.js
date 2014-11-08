@@ -2,6 +2,7 @@
 var gulp = require('gulp');
 var gutil = require('gulp-util');
 var filter = require('gulp-filter');
+var _ = require('lodash');
 
 // LESS
 var less = require('gulp-less');
@@ -41,6 +42,19 @@ gulp.task('copy:modules', function() {
   gulp.src(['./app/modules/**/*', '!./app/app/**/*Spec.js'], 
       {base: './app/modules'})
     .pipe(gulp.dest('./dist/modules'));
+});
+
+gulp.task('copy:node_modules', function () {
+  var packageJson, depNames, depPaths;
+  var packageJson = require('./package.json');
+  if (packageJson.dependencies) {
+    depNames = Object.keys(packageJson.dependencies);
+    depPaths = _.map(depNames, function (depName) {
+      return './node_modules/' + depName + '/**/*';
+    });
+    gulp.src(depPaths, {base: './node_modules'})
+      .pipe(gulp.dest('./dist/node_modules'));
+  }
 });
 
 gulp.task('less', function () {
