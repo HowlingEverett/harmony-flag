@@ -30,11 +30,19 @@ gulp.task('serve', [], function() {
   gulp.watch(['./app/less/**/*.less'], ['less']);
   gulp.watch(['./app/views/**/*.html'], ['copy:views']);
   gulp.watch(['./app/modules/**/*', '!./app/app/**/*Spec.js'], ['copy:modules']);
+  gulp.watch(['./app/index.html'], ['copy:index']);
+  gulp.watch(['./app/modules/**/*.html'], ['copy:modules']);
 });
 
 gulp.task('copy:views', function () {
   gulp.src('./app/views/**/*.html', {base: './app/views'})
     .pipe(gulp.dest('./dist/views'))
+    .pipe(reload({stream: true, once: true}));
+});
+
+gulp.task('copy:index', function () {
+  gulp.src('./app/index.html')
+    .pipe(gulp.dest('./dist'))
     .pipe(reload({stream: true, once: true}));
 });
 
