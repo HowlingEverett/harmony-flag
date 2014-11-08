@@ -11,7 +11,7 @@ var less = require('gulp-less');
 var jshint = require('gulp-jshint');
 
 // Traceur compiler and JS processing tools
-var traceur = require('traceur');
+var traceur = require('gulp-traceur');
 var uglify = require('gulp-uglify');
 
 // Sourcemap rendering and saving support (for compiled LESS and ES6)
@@ -26,12 +26,13 @@ var reload = browserSync.reload;
 
 gulp.task('default', []);
 
-gulp.task('serve', [], function() {
+gulp.task('serve', ['copy:views', 'copy:index', 'copy:modules', 'less', 'lint', 
+    'traceur', 'copy:node_modules', 'serve:api', 'sync:serve'], function() {
   gulp.watch(['./app/less/**/*.less'], ['less']);
   gulp.watch(['./app/views/**/*.html'], ['copy:views']);
-  gulp.watch(['./app/modules/**/*', '!./app/app/**/*Spec.js'], ['copy:modules']);
   gulp.watch(['./app/index.html'], ['copy:index']);
   gulp.watch(['./app/modules/**/*.html'], ['copy:modules']);
+  gulp.watch(['./app/modules/**/*.js', '!./app/**/*Spec.js'], ['traceur']);
 });
 
 gulp.task('copy:views', function () {
@@ -92,13 +93,22 @@ gulp.task('sync:serve', function(done) {
 
 gulp.task('sync:proxy', function(done) {
   browserSync({
-    proxy: 'http://localhost:3000',
+    proxy: 'http://localhost:9000',
     browser: ['google chrome']
   }, done);
 });
 
 gulp.task('hard-reload', function() {
   reload({stream: true, once: true});
+});
+
+gulp.task('traceur', function () {
+  return gulp.src('./app/**/*.js', {base: './app'})
+    .pipe(sourcemaps.init({loadMaps: true}))
+    .pipe(traceur())
+    .pipe(uglify())
+    .pipe(sourcemaps.write('./'))
+    .pipe(gulp.dest('./dist'));
 });
 
 gulp.task('serve:api', function() {
@@ -108,7 +118,7 @@ gulp.task('serve:api', function() {
     env: {
       'NODE_ENV': 'development'
     },
-    nodeArgs: ['--harmony --debug']
+    nodeArgs: ['--harmony']
   }).on('change', ['lint'])
     .on('restart', ['hard-reload']);
 });
